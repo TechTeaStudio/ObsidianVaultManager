@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0.1
+
+### Changed
+
+- New app icon: a basalt tile with an obsidian shard and one sulfur facet, drawn per size so it stays legible in the taskbar at 16 px. It replaces the folder icon.
+- README rewritten for the one-click window, with fresh screenshots from the demo.
+- The repository moved to `TechTeaStudio/ObsidianVaultManager`; links follow it.
+
 ## 0.6.0.0
 
 The app is rebuilt from `ObsidianScanner` into Vault Manager, split into a tested core and a new window.

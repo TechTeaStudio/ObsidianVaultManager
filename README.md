@@ -56,7 +56,7 @@ Get a self-contained file from the [Releases page](https://github.com/TechTeaStu
 Try it without touching anything:
 
 ```bash
-VaultManager-v0.6.0.4-win-x64.exe --demo
+VaultManager-v0.6.0.5-win-x64.exe --demo
 ```
 
 The demo runs on a throwaway set of vaults and uses no network.
@@ -64,11 +64,11 @@ The demo runs on a throwaway set of vaults and uses no network.
 ### Linux
 
 ```bash
-chmod +x VaultManager-v0.6.0.4-linux-x64
+chmod +x VaultManager-v0.6.0.5-linux-x64
 ```
 
 ```bash
-./VaultManager-v0.6.0.4-linux-x64
+./VaultManager-v0.6.0.5-linux-x64
 ```
 
 - **Obsidian installs:** AppImage and deb (`~/.config/obsidian`), Flatpak (`~/.var/app/md.obsidian.Obsidian`) and Snap (`~/snap/obsidian`). With more than one, the app reads the one used last and names it in the log.

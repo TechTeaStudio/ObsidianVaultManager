@@ -1,17 +1,8 @@
 # Changelog
 
-## 0.6.0.4
+## 0.6.0.5
 
-The first release with a Linux file. 0.6.0.3 never shipped: its tests failed on Ubuntu, so the release stopped before publishing. Everything listed under 0.6.0.3 ships here.
-
-### Fixed
-
-- Tests that only held on Windows now hold on Linux too: they built paths from Windows drive letters, blocked a delete in a way only Windows honours, and loaded the Win32 icon loader, whose finalizer crashed the Linux test run and hid 86 tests.
-- Profile and vault names compare without case on every system again; 0.6.0.3 had made them case-sensitive on Linux along with paths.
-
-## 0.6.0.3
-
-Not released. Its changes ship in 0.6.0.4.
+The first release with a Linux file. 0.6.0.3 and 0.6.0.4 never shipped: their tests failed on Ubuntu, so each release stopped before publishing. Their changes are listed here.
 
 ### Added
 
@@ -21,8 +12,17 @@ Not released. Its changes ship in 0.6.0.4.
 ### Fixed
 
 - On Linux an open vault looked closed: the app looked for a process named `Obsidian`, while Linux names it `obsidian` and compares by case. Changes for an open vault could have been written into it.
-- On Linux two vaults whose paths differ only in case were treated as one.
+- On Linux two vaults whose paths differ only in case were treated as one. Profile and vault names still compare without case on every system.
 - The Linux build crashed at start on a system without ICU. It now needs no ICU.
+- The test suite holds on Linux: tests no longer build paths from Windows drive letters, block a delete in a way only Windows honours, or load the Win32 icon loader, whose finalizer crashed the Linux test run.
+
+## 0.6.0.4
+
+Not released. Its changes ship in 0.6.0.5.
+
+## 0.6.0.3
+
+Not released. Its changes ship in 0.6.0.5.
 
 ## 0.6.0.2
 

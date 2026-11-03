@@ -478,7 +478,8 @@ public sealed class SmallRulesTests
 	[InlineData("Fresh", NewVaultProblem.None)]
 	public void New_vault_names_are_checked(string name, NewVaultProblem expected)
 	{
-		WorkspaceSnapshot snapshot = Sample.Snapshot([Sample.Vault("Taken")]);
+		// A path of this machine: on Linux "D:\v\Taken" is one file name, not a folder called "Taken".
+		WorkspaceSnapshot snapshot = Sample.Snapshot([Sample.Vault("Taken", Path.Combine(Path.GetTempPath(), "v", "Taken"))]);
 		Assert.Equal(expected, NewVaultRules.Check(name, Path.Combine(Path.GetTempPath(), "parent"), snapshot, folderHasFiles: false, confinedTo: null));
 	}
 

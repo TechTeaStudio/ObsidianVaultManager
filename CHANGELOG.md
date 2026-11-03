@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0.2
+
+### Added
+
+- Releases from product: every push to `product` with a new `VERSION` tests the app, builds the self-contained exe, and publishes it as a GitHub release with notes from this changelog and a SHA-256 checksum. A push that keeps the same version runs the checks and releases nothing.
+
+### Changed
+
+- Pull requests to `product` are checked by `ci.yml`; a push to `product` is checked once, inside the release workflow.
+
 ## 0.6.0.1
 
 ### Changed

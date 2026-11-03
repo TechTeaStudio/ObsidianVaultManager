@@ -95,15 +95,15 @@ VM_SCREENSHOTS=/d/some/folder dotnet test tests/VaultManager.Tests/VaultManager.
 
 ## Release flow
 
-`ci.yml` runs the tests and builds every target on each push and pull request to `product`. `release.yml` publishes the exe when a `v*` tag is pushed, and refuses a tag that does not match the `VERSION` file:
+A push to `product` releases. `release.yml` builds every target, runs the tests, publishes the self-contained exe, smoke-tests it, and creates a GitHub release with a lightweight tag `v<VERSION>` on the pushed commit, the exe, its SHA-256 checksum, and the notes from this version's `CHANGELOG.md` section. Nobody pushes tags by hand.
 
-```bash
-git tag v0.6.0.1
-```
+To release:
 
-```bash
-git push origin v0.6.0.1
-```
+1. Bump `VERSION`, one digit per part.
+2. Add a `## <VERSION>` section at the top of `CHANGELOG.md`.
+3. Commit and push to `product`.
+
+A push that keeps the same `VERSION` runs the checks and releases nothing. A `VERSION` without a changelog section stops the release before anything is published. Pull requests to `product` are checked by `ci.yml`.
 
 ## License
 

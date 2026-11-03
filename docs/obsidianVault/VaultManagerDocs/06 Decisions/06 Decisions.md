@@ -9,7 +9,7 @@ related:
   - "[[Vault Map]]"
   - "[[Vault Manager Architecture]]"
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # 06 Decisions
@@ -36,8 +36,9 @@ SORT updated DESC
 - [[Registration waits while Obsidian runs]] - with what is still unverified
 - [[Basalt palette]] - volcanic rock and one sulfur accent
 - [[Run on click instead of plan then Apply]] - a copy saved first and Undo in view
+- [[Release on push to product]] - a push to `product` makes the GitHub release and its tag, so no tag is pushed by hand
 
 ## Status
 
-- Active decisions: 6
+- Active decisions: 7
 - Open questions: real-Obsidian behaviour in [[Registration waits while Obsidian runs]], compacted LevelDB in [[Restricted mode read from browser storage]]

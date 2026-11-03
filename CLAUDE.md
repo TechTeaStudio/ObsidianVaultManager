@@ -73,4 +73,6 @@ The version lives in `VERSION` and `Directory.Build.props` feeds every assembly.
 
 Commit format: `v<VERSION> <Short description>`, one line, at most 72 characters, version bumped first. Agents do not push and do not open pull requests.
 
+**A push to `product` is a release.** `release.yml` creates the GitHub release and its lightweight tag `v<VERSION>` itself, on the pushed commit, with notes from the matching `CHANGELOG.md` section. So every commit that bumps `VERSION` needs a `## <VERSION>` changelog section, or the release stops; `ReleaseTests` check both, and run `.github/scripts/release-info.ps1`. Never push a tag by hand. A push without a version bump releases nothing.
+
 Vault notes go through the `obsidian-worker` agent: `docs/obsidianVault/VaultManagerDocs`.

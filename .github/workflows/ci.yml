@@ -1,8 +1,8 @@
 name: CI
 
+# Checks a pull request before it reaches product. A push to product runs release.yml, which repeats
+# these checks before it publishes, so they are not run twice for one push.
 on:
-  push:
-    branches: ["product"]
   pull_request:
     branches: ["product"]
   workflow_dispatch:

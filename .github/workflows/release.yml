@@ -1,17 +1,20 @@
 name: Release
 
+# Every push to product releases the version in VERSION, once: the release creates its own lightweight
+# tag v<VERSION> on the pushed commit, so no tag is ever pushed by hand. A push that does not bump
+# VERSION runs the checks and stops before publishing, so nothing is released twice.
 on:
   push:
-    tags: ["v*"]
+    branches: ["product"]
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to publish (without leading v)"
-        required: true
-        type: string
 
 permissions:
   contents: write
+
+# Two pushes in a row must not race to create the same release.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 env:
   DOTNET_NOLOGO: true
@@ -19,10 +22,50 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
+  build:
+    name: Build ${{ matrix.tfm }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tfm: net6.0
+            sdk: 6.0.x
+          - tfm: net8.0
+            sdk: 8.0.x
+          - tfm: net9.0
+            sdk: 9.0.x
+          - tfm: net10.0
+            sdk: 10.0.x
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The sources use C# 12, so every target still needs a current compiler.
+      - name: Setup .NET ${{ matrix.sdk }} and 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            ${{ matrix.sdk }}
+            10.0.x
+
+      - name: Build ${{ matrix.tfm }}
+        run: >
+          dotnet build src/VaultManager.App/VaultManager.App.csproj
+          -c Release
+          -f ${{ matrix.tfm }}
+          -nologo
+          -v:minimal
+
   release:
-    name: Publish self-contained win-x64 single-file exe
+    name: Test, publish and release
+    needs: build
+    # A manual run can start from any branch; only product may publish.
+    if: github.ref == 'refs/heads/product'
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -33,23 +76,25 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Resolve version
-        id: ver
+      - name: Read version and notes
+        id: info
         shell: pwsh
+        run: ./.github/scripts/release-info.ps1 -NotesPath release-notes.md
+
+      - name: Check whether this version is already released
+        id: released
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            $version = "${{ inputs.version }}"
+          gh release view "${{ steps.info.outputs.tag }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            "exists=true" >> $env:GITHUB_OUTPUT
+            Write-Host "::notice::${{ steps.info.outputs.tag }} is already released. Bump VERSION and add a CHANGELOG section to release again."
           } else {
-            $version = "${{ github.ref_name }}".TrimStart('v')
+            "exists=false" >> $env:GITHUB_OUTPUT
           }
-          $fileVersion = (Get-Content VERSION -Raw).Trim()
-          if ($version -ne $fileVersion) {
-            Write-Error "Tag version $version does not match VERSION file $fileVersion"
-            exit 1
-          }
-          "version=$version" >> $env:GITHUB_OUTPUT
-          "tag=v$version" >> $env:GITHUB_OUTPUT
-          Write-Host "Resolved version: $version"
+          exit 0
 
       - name: Test
         run: >
@@ -59,6 +104,7 @@ jobs:
           -v:minimal
 
       - name: Publish (net10.0, win-x64, single-file, self-contained)
+        if: steps.released.outputs.exists != 'true'
         run: >
           dotnet publish src/VaultManager.App/VaultManager.App.csproj
           -c Release
@@ -74,25 +120,37 @@ jobs:
           -v:minimal
           -o publish
 
+      # Proves SQLite, Skia, the fonts and the Russian strings load from the single file. Opens no window.
       - name: Smoke test the exe
+        if: steps.released.outputs.exists != 'true'
         shell: pwsh
         run: |
           $p = Start-Process publish/VaultManager.exe -ArgumentList "--smoke" -Wait -PassThru
           if ($p.ExitCode -ne 0) { exit $p.ExitCode }
 
-      - name: Rename artifact
+      - name: Name the exe and write its checksum
+        id: files
+        if: steps.released.outputs.exists != 'true'
         shell: pwsh
         run: |
-          $version = "${{ steps.ver.outputs.version }}"
-          Move-Item "publish/VaultManager.exe" "publish/VaultManager-v$version-win-x64.exe"
+          $exe = "VaultManager-${{ steps.info.outputs.tag }}-win-x64.exe"
+          Move-Item publish/VaultManager.exe "publish/$exe"
+          $hash = (Get-FileHash "publish/$exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content "publish/$exe.sha256" "$hash  $exe"
+          "exe=publish/$exe" >> $env:GITHUB_OUTPUT
+          "sha=publish/$exe.sha256" >> $env:GITHUB_OUTPUT
           Get-ChildItem publish
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.ver.outputs.tag }}
-          name: ${{ steps.ver.outputs.tag }}
-          files: publish/VaultManager-v*-win-x64.exe
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+        if: steps.released.outputs.exists != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${{ steps.info.outputs.tag }}"
+          "${{ steps.files.outputs.exe }}"
+          "${{ steps.files.outputs.sha }}"
+          --title "${{ steps.info.outputs.tag }}"
+          --notes-file release-notes.md
+          --target "${{ github.sha }}"
+          --latest

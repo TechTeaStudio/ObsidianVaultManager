@@ -479,7 +479,7 @@ public sealed class SmallRulesTests
 	public void New_vault_names_are_checked(string name, NewVaultProblem expected)
 	{
 		WorkspaceSnapshot snapshot = Sample.Snapshot([Sample.Vault("Taken")]);
-		Assert.Equal(expected, NewVaultRules.Check(name, @"D:\parent", snapshot, folderHasFiles: false, confinedTo: null));
+		Assert.Equal(expected, NewVaultRules.Check(name, Path.Combine(Path.GetTempPath(), "parent"), snapshot, folderHasFiles: false, confinedTo: null));
 	}
 
 	[Fact]
@@ -488,10 +488,13 @@ public sealed class SmallRulesTests
 		WorkspaceSnapshot snapshot = Sample.Snapshot([]);
 		Assert.Equal(NewVaultProblem.EmptyParent, NewVaultRules.Check("Fresh", " ", snapshot, false, null));
 		Assert.Equal(NewVaultProblem.RelativeParent, NewVaultRules.Check("Fresh", "docs", snapshot, false, null));
-		Assert.Equal(NewVaultProblem.FolderNotEmpty, NewVaultRules.Check("Fresh", @"D:\p", snapshot, true, null));
-		Assert.Equal(NewVaultProblem.OutsideDemo, NewVaultRules.Check("Fresh", @"D:\elsewhere", snapshot, false, @"D:\demo"));
-		Assert.Equal(NewVaultProblem.None, NewVaultRules.Check("Fresh", @"D:\demo\Vaults", snapshot, false, @"D:\demo"));
-		Assert.Equal(NewVaultProblem.OutsideDemo, NewVaultRules.Check("Fresh", @"D:\demo2\Vaults", snapshot, false, @"D:\demo"));
+		// Rooted paths of this machine: on Linux "D:\p" is a relative name.
+		string root = Path.GetTempPath();
+		string demo = Path.Combine(root, "demo");
+		Assert.Equal(NewVaultProblem.FolderNotEmpty, NewVaultRules.Check("Fresh", Path.Combine(root, "p"), snapshot, true, null));
+		Assert.Equal(NewVaultProblem.OutsideDemo, NewVaultRules.Check("Fresh", Path.Combine(root, "elsewhere"), snapshot, false, demo));
+		Assert.Equal(NewVaultProblem.None, NewVaultRules.Check("Fresh", Path.Combine(demo, "Vaults"), snapshot, false, demo));
+		Assert.Equal(NewVaultProblem.OutsideDemo, NewVaultRules.Check("Fresh", Path.Combine(root, "demo2", "Vaults"), snapshot, false, demo));
 	}
 
 	[Fact]
@@ -548,7 +551,7 @@ public sealed class SmallRulesTests
 	[Fact]
 	public void Links_are_encoded()
 	{
-		Assert.Equal("obsidian://open?vault=My%20Vault%20%26%20Co", Links.OpenVault(@"D:\Vaults\My Vault & Co\"));
+		Assert.Equal("obsidian://open?vault=My%20Vault%20%26%20Co", Links.OpenVault(Path.Combine(Path.GetTempPath(), "Vaults", "My Vault & Co") + Path.DirectorySeparatorChar));
 		Assert.Equal("https://community.obsidian.md/plugins/obsidian-git", Links.CatalogPage("obsidian-git"));
 		Assert.Equal("https://community.obsidian.md/plugins/a%2Fb", Links.CatalogPage("a/b"));
 	}

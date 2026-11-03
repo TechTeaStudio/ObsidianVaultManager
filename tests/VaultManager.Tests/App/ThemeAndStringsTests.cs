@@ -342,6 +342,11 @@ public sealed class ThemeTests
 	public void The_Windows_loader_itself_takes_the_icon()
 	{
 		// The window icon goes through Avalonia's Win32 loader, which the headless platform replaces with a stub. It makes no window.
+		if (!OperatingSystem.IsWindows())
+		{
+			return;
+		}
+
 		Type icon = Assembly.Load("Avalonia.Win32").GetType("Avalonia.Win32.Interop.Win32Icon")!;
 		byte[] file = File.ReadAllBytes(Path.Combine(Repo.App, "Assets", "vault-manager.ico"));
 

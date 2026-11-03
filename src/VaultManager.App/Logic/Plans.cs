@@ -160,7 +160,7 @@ internal static class NewVaultRules
 			return NewVaultProblem.BadName;
 		}
 
-		if (snapshot?.Vaults.Any(v => string.Equals(Path.GetFileName(v.Path.TrimEnd('\\', '/')), trimmed, VaultManager.Core.Foundation.PathRules.Comparison)) == true)
+		if (snapshot?.Vaults.Any(v => string.Equals(Path.GetFileName(v.Path.TrimEnd('\\', '/')), trimmed, StringComparison.OrdinalIgnoreCase)) == true)
 		{
 			return NewVaultProblem.NameTaken;
 		}
@@ -196,7 +196,8 @@ internal static class ProfileNames
 {
 	public static string Free(string wanted, IEnumerable<string> taken)
 	{
-		var names = new HashSet<string>(taken, VaultManager.Core.Foundation.PathRules.Comparer);
+		// A name is not a path: two that differ only in case read as one to a person, on any system.
+		var names = new HashSet<string>(taken, StringComparer.OrdinalIgnoreCase);
 		string name = wanted;
 		for (int n = 2; names.Contains(name); n++)
 		{

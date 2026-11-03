@@ -165,21 +165,15 @@ public sealed class ReviewFindingsTests
 		string a = f.Vault("a"), b = f.Vault("b");
 		Fixture.Plugin(a, "p", "2.0.0");
 		Fixture.Plugin(b, "p", "1.0.0", listed: false, data: """{"v":"mine"}""");
-		string list = VaultLayout.CommunityPluginsFile(b);
-		File.WriteAllText(list, "[]");
-		File.SetAttributes(list, FileAttributes.ReadOnly);
-		try
-		{
-			ChangeResult result = (await f.Host().Executor.ApplyAsync([Copy(b, a, "p", "1.0.0", "2.0.0")])).Results.Single();
+		// A folder where the list file belongs makes the write fail on every system. A read-only file did that on
+		// Windows only: Linux replaces it by rename and the write succeeded.
+		Directory.CreateDirectory(VaultLayout.CommunityPluginsFile(b));
 
-			Assert.Equal(ChangeStatus.Failed, result.Status);
-			Assert.Equal("1.0.0", Fixture.VersionOf(b, "p"));
-			Assert.Contains("mine", File.ReadAllText(Data(b, "p")));
-		}
-		finally
-		{
-			File.SetAttributes(list, FileAttributes.Normal);
-		}
+		ChangeResult result = (await f.Host().Executor.ApplyAsync([Copy(b, a, "p", "1.0.0", "2.0.0")])).Results.Single();
+
+		Assert.Equal(ChangeStatus.Failed, result.Status);
+		Assert.Equal("1.0.0", Fixture.VersionOf(b, "p"));
+		Assert.Contains("mine", File.ReadAllText(Data(b, "p")));
 	}
 
 	[Fact]
@@ -190,13 +184,30 @@ public sealed class ReviewFindingsTests
 		Directory.CreateDirectory(target);
 		Directory.CreateDirectory(retired);
 		File.WriteAllText(Path.Combine(retired, "old.txt"), "old");
-		string held = Path.Combine(target, "main.js");
-		using var hold = new FileStream(held, FileMode.Create, FileAccess.Write, FileShare.None);
+		File.WriteAllText(Path.Combine(target, "main.js"), "new");
 
-		bool restored = ChangeExecutor.TryPutBack(target, retired, hadOld: true);
+		// What blocks a delete differs: an open file on Windows, a folder without write permission on Linux.
+		FileStream? hold = OperatingSystem.IsWindows() ? new FileStream(Path.Combine(target, "main.js"), FileMode.Open, FileAccess.Read, FileShare.None) : null;
+		if (!OperatingSystem.IsWindows())
+		{
+			File.SetUnixFileMode(target, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+		}
 
-		Assert.False(restored);
-		Assert.Equal("old", File.ReadAllText(Path.Combine(retired, "old.txt")));
+		try
+		{
+			bool restored = ChangeExecutor.TryPutBack(target, retired, hadOld: true);
+
+			Assert.False(restored);
+			Assert.Equal("old", File.ReadAllText(Path.Combine(retired, "old.txt")));
+		}
+		finally
+		{
+			hold?.Dispose();
+			if (!OperatingSystem.IsWindows())
+			{
+				File.SetUnixFileMode(target, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+			}
+		}
 	}
 
 	// A new vault is all or nothing, and only a real one gets registered.

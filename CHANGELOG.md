@@ -1,6 +1,17 @@
 # Changelog
 
+## 0.6.0.4
+
+The first release with a Linux file. 0.6.0.3 never shipped: its tests failed on Ubuntu, so the release stopped before publishing. Everything listed under 0.6.0.3 ships here.
+
+### Fixed
+
+- Tests that only held on Windows now hold on Linux too: they built paths from Windows drive letters, blocked a delete in a way only Windows honours, and loaded the Win32 icon loader, whose finalizer crashed the Linux test run and hid 86 tests.
+- Profile and vault names compare without case on every system again; 0.6.0.3 had made them case-sensitive on Linux along with paths.
+
 ## 0.6.0.3
+
+Not released. Its changes ship in 0.6.0.4.
 
 ### Added
 

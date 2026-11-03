@@ -8,15 +8,21 @@ using VaultManager.Core.Sync;
 namespace VaultManager.Core;
 
 /// <summary>Where one running app reads and writes. A demo points all of it at a throwaway folder.</summary>
-public sealed record AppPaths(string ObsidianConfigDir, string DataDir)
+public sealed record AppPaths(string ObsidianConfigDir, string DataDir, ObsidianInstall Install = ObsidianInstall.Standard)
 {
 	public string DatabaseFile => Path.Combine(DataDir, "vault-manager.db");
 	public string ProfilesDir => Path.Combine(DataDir, "profiles");
 	public string SnapshotsDir => Path.Combine(DataDir, "snapshots");
 
-	public static AppPaths ForThisUser() => new(
-		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obsidian"),
-		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TechTeaStudio", "VaultManager"));
+	/// <summary>On Linux the app's own data goes to ~/.local/share, the place SpecialFolder.LocalApplicationData names there.</summary>
+	public static AppPaths ForThisUser()
+	{
+		ObsidianConfigLocation obsidian = ObsidianConfigLocator.ForThisUser();
+		return new AppPaths(
+			obsidian.Dir,
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TechTeaStudio", "VaultManager"),
+			obsidian.Install);
+	}
 }
 
 /// <summary>Everything the window needs, wired once.</summary>

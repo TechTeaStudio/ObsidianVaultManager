@@ -137,6 +137,7 @@ internal static class K
 	public const string Log_UndoBlocked = "Log_UndoBlocked";
 	public const string Log_UndoDone = "Log_UndoDone";
 	public const string Log_Unexpected = "Log_Unexpected";
+	public const string Log_ObsidianFrom = "Log_ObsidianFrom";
 	public const string Log_Opened = "Log_Opened";
 	public const string Log_OpenFailed = "Log_OpenFailed";
 	public const string Log_Checked = "Log_Checked";

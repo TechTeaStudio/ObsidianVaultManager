@@ -150,7 +150,7 @@
   <data name="ChangeFailure_DownloadFailed" xml:space="preserve"><value>the download failed</value></data>
   <data name="ChangeFailure_VerifyFailed" xml:space="preserve"><value>the copy did not match its source</value></data>
   <data name="ChangeFailure_NothingToUndo" xml:space="preserve"><value>nothing to undo</value></data>
-  <data name="ChangeFailure_RecoveryNeeded" xml:space="preserve"><value>the old copy could not be put back; it is kept in .obsidian\.vault-manager-staging</value></data>
+  <data name="ChangeFailure_RecoveryNeeded" xml:space="preserve"><value>the old copy could not be put back; it is kept in the .vault-manager-staging folder inside .obsidian</value></data>
   <data name="ChangeFailure_Unexpected" xml:space="preserve"><value>something unexpected went wrong</value></data>
   <data name="ChangeFailure_WriteFailed" xml:space="preserve"><value>could not write to the disk</value></data>
   <data name="Undo_Button" xml:space="preserve"><value>Undo</value></data>
@@ -396,4 +396,8 @@
   <data name="Plural_Vaults_One" xml:space="preserve"><value>{0} vault</value></data>
   <data name="Plural_Vaults_Few" xml:space="preserve"><value>{0} vaults</value></data>
   <data name="Plural_Vaults_Many" xml:space="preserve"><value>{0} vaults</value></data>
+  <data name="Log_ObsidianFrom" xml:space="preserve"><value>Reading Obsidian's settings, {0} install: {1}</value></data>
+  <data name="ObsidianInstall_Standard" xml:space="preserve"><value>standard</value></data>
+  <data name="ObsidianInstall_Flatpak" xml:space="preserve"><value>Flatpak</value></data>
+  <data name="ObsidianInstall_Snap" xml:space="preserve"><value>Snap</value></data>
 </root>

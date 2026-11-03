@@ -18,6 +18,8 @@ These protect a user's notes and settings. Each one comes from a real failure in
 - **Nothing outside a click reaches the network.** The owner's connection is expensive: sizes are shown first, and local copies come before downloads.
 - **Imported profiles are untrusted.** `ProfileValidator` checks every name that becomes a path.
 - **The database never lives in a vault and is never the truth about one.** The disk is. Snapshots are files; SQLite holds pointers.
+- **Linux compares by case.** The Obsidian process is `obsidian` there, and looking it up as `Obsidian` once made open vaults look closed: `SystemObsidianProcess.IsObsidian` ignores case. Vault paths go through `PathRules`, which is case-sensitive on Linux only. Tests build paths with `Path.Combine`, never a Windows drive literal.
+- **The Linux build runs without ICU** (`InvariantGlobalization` for `linux-*` in the app's csproj), because an Ubuntu without ICU crashed it at the first database call. Avalonia's X11 backend still needs `libICE` and `libSM`: turning session management off does not avoid them in 11.3.
 - **Registering a vault waits while Obsidian runs.** What a running Obsidian does with an external write to `obsidian.json` has not been established. Do not change this without testing it.
 
 ## Layout

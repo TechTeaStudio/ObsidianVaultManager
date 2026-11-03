@@ -37,8 +37,9 @@ SORT updated DESC
 - [[Basalt palette]] - volcanic rock and one sulfur accent
 - [[Run on click instead of plan then Apply]] - a copy saved first and Undo in view
 - [[Release on push to product]] - a push to `product` makes the GitHub release and its tag, so no tag is pushed by hand
+- [[Linux support]] - the `linux-x64` file, and the Linux rules that differ from Windows
 
 ## Status
 
-- Active decisions: 7
-- Open questions: real-Obsidian behaviour in [[Registration waits while Obsidian runs]], compacted LevelDB in [[Restricted mode read from browser storage]]
+- Active decisions: 8
+- Open questions: real-Obsidian behaviour in [[Registration waits while Obsidian runs]], compacted LevelDB in [[Restricted mode read from browser storage]], and the Linux checks not run yet in [[Linux support]]

@@ -12,7 +12,7 @@ related:
   - "[[Profiles as files, everything else in SQLite]]"
   - "[[Run on click instead of plan then Apply]]"
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # Vault Manager Architecture
@@ -27,7 +27,7 @@ A tested core holds the rules and a thin Avalonia window shows them. An action r
 | :-- | :-- | :-- |
 | `src/VaultManager.Core` | The rules. No UI references. Targets net6.0, net8.0, net9.0, net10.0 | Rules go here, test first |
 | `src/VaultManager.App` | Avalonia window: thin views, view models, `Logic/` (queue, attention, plans), `Themes/Basalt.axaml`, resx | A decision in a view is a bug |
-| `tests/VaultManager.Tests` | xunit on real temp folders, headless Avalonia for the window | Never touches the real `%APPDATA%` or the network |
+| `tests/VaultManager.Tests` | xunit on real temp folders, headless Avalonia for the window | Never touches the real app data, Obsidian settings or the network. On Windows that is `%APPDATA%` and `%LOCALAPPDATA%`, on Linux `~/.config` and `~/.local/share` |
 
 `CoreHost` wires Core once from three inputs, and these are the seams that the demo and the tests replace:
 
@@ -86,7 +86,7 @@ The database is `vault-manager.db`. The table list is in [[Store]].
 | Catalog cache, online versions | Everything Obsidian owns: `obsidian.json`, each vault's `.obsidian/` |
 | Waiting lines | |
 
-The app's data folder is `%LOCALAPPDATA%\TechTeaStudio\VaultManager`. Snapshots are files and SQLite holds pointers to them, in the `SnapshotDir` of an undo record.
+The app's data folder is `%LOCALAPPDATA%\TechTeaStudio\VaultManager` on Windows and `~/.local/share/TechTeaStudio/VaultManager` on Linux. Snapshots are files and SQLite holds pointers to them, in the `SnapshotDir` of an undo record.
 
 Obsidian's browser storage is only ever read. See [[Restricted mode read from browser storage]].
 

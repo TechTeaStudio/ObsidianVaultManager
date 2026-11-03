@@ -10,6 +10,14 @@ public sealed partial class MainWindow : Window
 	public MainWindow()
 	{
 		AvaloniaXamlLoader.Load(this);
+
+		// Drawing the window's own frame works on Windows only; Linux window managers keep theirs, and the
+		// title row then holds just the name and version (MainView hides its own window buttons there).
+		if (!OperatingSystem.IsWindows())
+		{
+			ExtendClientAreaToDecorationsHint = false;
+		}
+
 #if DEBUG
 		this.AttachDevTools();
 #endif

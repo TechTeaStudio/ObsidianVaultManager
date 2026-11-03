@@ -54,7 +54,7 @@ public sealed class ChangeExecutor(
 		string operationDir = Path.Combine(snapshotsRoot, operationId);
 		var results = new List<ChangeResult>();
 		var undo = new List<string>();
-		var failedCreates = new Dictionary<string, ChangeFailure>(StringComparer.OrdinalIgnoreCase);
+		var failedCreates = new Dictionary<string, ChangeFailure>(PathRules.Comparer);
 		bool keepSnapshots = false;
 
 		try
@@ -223,7 +223,7 @@ public sealed class ChangeExecutor(
 		// With Obsidian running and its list unreadable, nothing proves the vault is closed, so it counts as open.
 		ReadResult<IReadOnlyList<RegistryEntry>> entries = registry.Read();
 		bool mayBeOpen = entries.Status == ReadStatus.Unreadable
-			|| entries.Value?.Any(e => e.Open && string.Equals(e.Path, vault, StringComparison.OrdinalIgnoreCase)) == true;
+			|| entries.Value?.Any(e => e.Open && PathRules.Same(e.Path, vault)) == true;
 		return mayBeOpen ? ChangeFailure.VaultOpen : ChangeFailure.None;
 	}
 

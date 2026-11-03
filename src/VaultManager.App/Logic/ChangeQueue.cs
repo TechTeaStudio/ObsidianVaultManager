@@ -116,14 +116,14 @@ internal sealed class ChangeQueue
 
 	public bool IsSettingsPending(string target, string relative) => _lines.Any(l => l.IsInFlight && l.Item is CopySettingsFile s && Same(s.TargetVault, target) && s.RelativePath == relative);
 
-	static bool Same(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+	static bool Same(string a, string b) => VaultManager.Core.Foundation.PathRules.Same(a, b);
 }
 
 internal static class QueueRules
 {
 	public static string DedupeKey(ChangeItem item)
 	{
-		string vault = item.VaultPath.ToUpperInvariant();
+		string vault = VaultManager.Core.Foundation.PathRules.Key(item.VaultPath);
 		return item switch
 		{
 			CopyPlugin c => $"plugin|{vault}|{c.PluginId}",
@@ -149,7 +149,7 @@ internal static class QueueRules
 					return null;
 				}
 
-				PluginInstall? target = row.Installs.FirstOrDefault(i => string.Equals(i.VaultPath, copy.TargetVault, StringComparison.OrdinalIgnoreCase));
+				PluginInstall? target = row.Installs.FirstOrDefault(i => VaultManager.Core.Foundation.PathRules.Same(i.VaultPath, copy.TargetVault));
 
 				// The vault may have moved past this line's version: renewing must never turn it into a downgrade.
 				if (target?.Version is not null && PluginVersion.Compare(target.Version, row.NewestVersion) >= 0)
@@ -160,7 +160,7 @@ internal static class QueueRules
 				return copy with { FromVersion = target?.Version, ToVersion = row.NewestVersion, SourceVault = row.SourceVaultPath, ExpectedTargetHash = target?.MainHash };
 			case DownloadPlugin download:
 				PluginInstall? current = snapshot?.Plugins.FirstOrDefault(p => p.Id == download.PluginId)?.Installs
-					.FirstOrDefault(i => string.Equals(i.VaultPath, download.TargetVault, StringComparison.OrdinalIgnoreCase));
+					.FirstOrDefault(i => VaultManager.Core.Foundation.PathRules.Same(i.VaultPath, download.TargetVault));
 				if (current?.Version is not null && PluginVersion.Compare(current.Version, download.ToVersion) >= 0)
 				{
 					return null;

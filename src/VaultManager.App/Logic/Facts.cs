@@ -61,7 +61,7 @@ internal static class PluginFacts
 	};
 
 	public static VaultState? FindVault(WorkspaceSnapshot? snapshot, string path) =>
-		snapshot?.Vaults.FirstOrDefault(v => string.Equals(v.Path, path, StringComparison.OrdinalIgnoreCase));
+		snapshot?.Vaults.FirstOrDefault(v => VaultManager.Core.Foundation.PathRules.Same(v.Path, path));
 
 	public static string VaultName(WorkspaceSnapshot? snapshot, string path) =>
 		FindVault(snapshot, path)?.DisplayName ?? Path.GetFileName(path.TrimEnd('\\', '/'));

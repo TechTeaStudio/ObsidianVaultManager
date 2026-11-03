@@ -453,7 +453,7 @@ internal sealed partial class ChangesViewModel(ShellViewModel shell) : Observabl
 	{
 		WorkspaceSnapshot? snapshot = Data.Snapshot;
 		PluginInstall? Target(string id, string vault) => snapshot?.Plugins.FirstOrDefault(p => p.Id == id)?.Installs
-			.FirstOrDefault(i => string.Equals(i.VaultPath, vault, StringComparison.OrdinalIgnoreCase));
+			.FirstOrDefault(i => VaultManager.Core.Foundation.PathRules.Same(i.VaultPath, vault));
 
 		string From(string vault) => Texts.Format(K.Line_From, PluginFacts.VaultName(snapshot, vault));
 

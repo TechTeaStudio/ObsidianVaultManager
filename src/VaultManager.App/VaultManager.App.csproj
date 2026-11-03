@@ -17,6 +17,15 @@
     <SatelliteResourceLanguages>en;ru</SatelliteResourceLanguages>
   </PropertyGroup>
 
+  <!--
+    Desktop Linux does not always ship ICU: on an Ubuntu without it the build crashed at its first database call.
+    Invariant mode needs no ICU, and PredefinedCulturesOnly=false still lets the Russian strings load by name.
+  -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="VaultManager.Tests" />
   </ItemGroup>

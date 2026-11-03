@@ -22,6 +22,39 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
+  info:
+    name: Version and notes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.info.outputs.version }}
+      tag: ${{ steps.info.outputs.tag }}
+      exists: ${{ steps.released.outputs.exists }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version and notes
+        id: info
+        shell: pwsh
+        run: ./.github/scripts/release-info.ps1 -NotesPath release-notes.md
+
+      - name: Check whether this version is already released
+        id: released
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ steps.info.outputs.tag }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            "exists=true" >> $env:GITHUB_OUTPUT
+            Write-Host "::notice::${{ steps.info.outputs.tag }} is already released. Bump VERSION and add a CHANGELOG section to release again."
+          } else {
+            "exists=false" >> $env:GITHUB_OUTPUT
+          }
+          exit 0
+
   build:
     name: Build ${{ matrix.tfm }}
     runs-on: ubuntu-latest
@@ -59,13 +92,27 @@ jobs:
           -nologo
           -v:minimal
 
-  release:
-    name: Test, publish and release
-    needs: build
-    # A manual run can start from any branch; only product may publish.
-    if: github.ref == 'refs/heads/product'
-    runs-on: windows-latest
+  # Each platform tests itself and builds its own file. The file is kept only when this version is new.
+  package:
+    name: Test and package ${{ matrix.rid }}
+    needs: [info, build]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            file: VaultManager.exe
+            ext: .exe
+            smoke: ./publish/VaultManager.exe --smoke
+          - os: ubuntu-latest
+            rid: linux-x64
+            file: VaultManager
+            ext: ""
+            # Skia and the font check need a display, so the Linux check runs on a virtual one.
+            smoke: xvfb-run -a ./publish/VaultManager --smoke
 
     steps:
       - name: Checkout
@@ -76,26 +123,6 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Read version and notes
-        id: info
-        shell: pwsh
-        run: ./.github/scripts/release-info.ps1 -NotesPath release-notes.md
-
-      - name: Check whether this version is already released
-        id: released
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release view "${{ steps.info.outputs.tag }}" *> $null
-          if ($LASTEXITCODE -eq 0) {
-            "exists=true" >> $env:GITHUB_OUTPUT
-            Write-Host "::notice::${{ steps.info.outputs.tag }} is already released. Bump VERSION and add a CHANGELOG section to release again."
-          } else {
-            "exists=false" >> $env:GITHUB_OUTPUT
-          }
-          exit 0
-
       - name: Test
         run: >
           dotnet test tests/VaultManager.Tests/VaultManager.Tests.csproj
@@ -103,13 +130,13 @@ jobs:
           -nologo
           -v:minimal
 
-      - name: Publish (net10.0, win-x64, single-file, self-contained)
-        if: steps.released.outputs.exists != 'true'
+      - name: Publish (net10.0, ${{ matrix.rid }}, single-file, self-contained)
+        if: needs.info.outputs.exists != 'true'
         run: >
           dotnet publish src/VaultManager.App/VaultManager.App.csproj
           -c Release
           -f net10.0
-          -r win-x64
+          -r ${{ matrix.rid }}
           --self-contained true
           -p:PublishSingleFile=true
           -p:EnableCompressionInSingleFile=true
@@ -121,36 +148,61 @@ jobs:
           -o publish
 
       # Proves SQLite, Skia, the fonts and the Russian strings load from the single file. Opens no window.
-      - name: Smoke test the exe
-        if: steps.released.outputs.exists != 'true'
-        shell: pwsh
-        run: |
-          $p = Start-Process publish/VaultManager.exe -ArgumentList "--smoke" -Wait -PassThru
-          if ($p.ExitCode -ne 0) { exit $p.ExitCode }
+      - name: Smoke test the file
+        if: needs.info.outputs.exists != 'true'
+        shell: bash
+        run: ${{ matrix.smoke }}
 
-      - name: Name the exe and write its checksum
-        id: files
-        if: steps.released.outputs.exists != 'true'
+      - name: Name the file and write its checksum
+        if: needs.info.outputs.exists != 'true'
         shell: pwsh
         run: |
-          $exe = "VaultManager-${{ steps.info.outputs.tag }}-win-x64.exe"
-          Move-Item publish/VaultManager.exe "publish/$exe"
-          $hash = (Get-FileHash "publish/$exe" -Algorithm SHA256).Hash.ToLowerInvariant()
-          Set-Content "publish/$exe.sha256" "$hash  $exe"
-          "exe=publish/$exe" >> $env:GITHUB_OUTPUT
-          "sha=publish/$exe.sha256" >> $env:GITHUB_OUTPUT
-          Get-ChildItem publish
+          $name = "VaultManager-${{ needs.info.outputs.tag }}-${{ matrix.rid }}${{ matrix.ext }}"
+          New-Item -ItemType Directory -Force out | Out-Null
+          Move-Item "publish/${{ matrix.file }}" "out/$name"
+          $hash = (Get-FileHash "out/$name" -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content "out/$name.sha256" "$hash  $name"
+          Get-ChildItem out
+
+      - name: Keep the file for the release
+        if: needs.info.outputs.exists != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.rid }}
+          path: out/*
+          retention-days: 7
+
+  release:
+    name: Create GitHub release
+    needs: [info, package]
+    # A manual run can start from any branch; only product may publish.
+    if: github.ref == 'refs/heads/product' && needs.info.outputs.exists != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read notes
+        shell: pwsh
+        run: ./.github/scripts/release-info.ps1 -NotesPath release-notes.md
+
+      - name: Collect the files
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: out
 
       - name: Create GitHub Release
-        if: steps.released.outputs.exists != 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "${{ steps.info.outputs.tag }}"
-          "${{ steps.files.outputs.exe }}"
-          "${{ steps.files.outputs.sha }}"
-          --title "${{ steps.info.outputs.tag }}"
+          gh release create "${{ needs.info.outputs.tag }}"
+          (Get-ChildItem out | ForEach-Object FullName)
+          --title "${{ needs.info.outputs.tag }}"
           --notes-file release-notes.md
           --target "${{ github.sha }}"
           --latest

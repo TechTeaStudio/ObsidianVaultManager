@@ -41,29 +41,51 @@ The screenshots come from the built-in demo, not from real vaults.
 ## When not to use it
 
 - To sync notes between devices. Use Obsidian Sync or Git.
-- On a phone. It is a Windows desktop app.
+- On a phone. It is a desktop app for Windows and Linux.
 - If you want plugins managed from inside Obsidian, try [Extension Hub](https://community.obsidian.md/plugins/extension-hub) or [Vault Extension Sync](https://community.obsidian.md/plugins/vault-plugin-sync).
 
 ## Download
 
-Get the self-contained Windows x64 exe from the [Releases page](https://github.com/TechTeaStudio/ObsidianVaultManager/releases). No .NET install is needed.
+Get a self-contained file from the [Releases page](https://github.com/TechTeaStudio/ObsidianVaultManager/releases). No .NET install is needed. Each file has a `.sha256` checksum beside it.
+
+| System | File |
+| :-- | :-- |
+| Windows x64 | `VaultManager-v<version>-win-x64.exe` |
+| Linux x64 | `VaultManager-v<version>-linux-x64` |
 
 Try it without touching anything:
 
 ```bash
-VaultManager-v0.6.0.1-win-x64.exe --demo
+VaultManager-v0.6.0.3-win-x64.exe --demo
 ```
 
 The demo runs on a throwaway set of vaults and uses no network.
+
+### Linux
+
+```bash
+chmod +x VaultManager-v0.6.0.3-linux-x64
+```
+
+```bash
+./VaultManager-v0.6.0.3-linux-x64
+```
+
+- **Obsidian installs:** AppImage and deb (`~/.config/obsidian`), Flatpak (`~/.var/app/md.obsidian.Obsidian`) and Snap (`~/snap/obsidian`). With more than one, the app reads the one used last and names it in the log.
+- **System libraries:** X11 or XWayland, `libx11`, `libice6`, `libsm6` and `fontconfig`. Desktop distributions ship them; a minimal system may need `sudo apt install libice6 libsm6`. ICU is not needed.
+- **Window:** your window manager draws the frame and its buttons.
+- **Checked:** the Linux file passes its self-check on Ubuntu 26.04 under WSL. It has not been tried on a full desktop, with Flatpak or Snap Obsidian, or on Wayland without XWayland.
 
 ## Where things live
 
 | What | Where |
 | :-- | :-- |
-| Vault list | Read from `%APPDATA%\obsidian\obsidian.json` |
-| Profiles | `%LOCALAPPDATA%\TechTeaStudio\VaultManager\profiles` |
-| Journal, undo, waiting changes, decisions | `%LOCALAPPDATA%\TechTeaStudio\VaultManager\vault-manager.db` |
-| Saved copies for undo | `%LOCALAPPDATA%\TechTeaStudio\VaultManager\snapshots`, the last 20 operations |
+| Vault list | Read from Obsidian's `obsidian.json`: `%APPDATA%\obsidian` on Windows, see Linux above |
+| Profiles | `profiles` in the app's data folder |
+| Journal, undo, waiting changes, decisions | `vault-manager.db` in the app's data folder |
+| Saved copies for undo | `snapshots` in the app's data folder, the last 20 operations |
+
+The app's data folder is `%LOCALAPPDATA%\TechTeaStudio\VaultManager` on Windows and `~/.local/share/TechTeaStudio/VaultManager` on Linux.
 
 Nothing of the app's own is kept inside a vault.
 
@@ -95,7 +117,7 @@ VM_SCREENSHOTS=/d/some/folder dotnet test tests/VaultManager.Tests/VaultManager.
 
 ## Release flow
 
-A push to `product` releases. `release.yml` builds every target, runs the tests, publishes the self-contained exe, smoke-tests it, and creates a GitHub release with a lightweight tag `v<VERSION>` on the pushed commit, the exe, its SHA-256 checksum, and the notes from this version's `CHANGELOG.md` section. Nobody pushes tags by hand.
+A push to `product` releases. `release.yml` builds every target, runs the tests on Windows and on Ubuntu, publishes a self-contained file for `win-x64` and `linux-x64`, smoke-tests each (the Linux one on a virtual display), and creates a GitHub release with a lightweight tag `v<VERSION>` on the pushed commit, both files, their SHA-256 checksums, and the notes from this version's `CHANGELOG.md` section. Nobody pushes tags by hand.
 
 To release:
 

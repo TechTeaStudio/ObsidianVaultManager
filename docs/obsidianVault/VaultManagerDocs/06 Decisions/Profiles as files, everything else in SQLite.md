@@ -10,7 +10,7 @@ related:
   - "[[Store]]"
   - "[[Vault Manager Architecture]]"
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # Profiles as files, everything else in SQLite
@@ -21,7 +21,7 @@ The app keeps two kinds of data of its own. Profiles are something a person owns
 
 ## Decision
 
-- **A profile is a plain file**, `*.vaultprofile.json` in `%LOCALAPPDATA%\TechTeaStudio\VaultManager\profiles`. The reason in the code is that it can live in git, be sent to someone or be edited by hand.
+- **A profile is a plain file**, `*.vaultprofile.json` in the `profiles` folder of the app's data folder: `%LOCALAPPDATA%\TechTeaStudio\VaultManager\profiles` on Windows, `~/.local/share/TechTeaStudio/VaultManager/profiles` on Linux. The reason in the code is that it can live in git, be sent to someone or be edited by hand.
 - **Everything else the app remembers is in SQLite**, `vault-manager.db`, in the same folder.
 - **The database never lives in a vault and is never the truth about one.** The disk is.
 

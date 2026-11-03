@@ -4,11 +4,13 @@ status: active
 priority: high
 tags: [runbook, release, ci]
 aliases: []
-summary: "How a push to product publishes the self-contained Windows exe: build, test, smoke test, then a GitHub release with its own tag."
+summary: "How a push to product tests, publishes and smoke tests the win-x64 exe and the linux-x64 file, then makes one GitHub release with its own tag."
 related:
   - "[[Demo Mode]]"
   - "[[Release on push to product]]"
+  - "[[Linux support]]"
   - "[[v0.6.0.0 - Rebuild into Vault Manager]]"
+  - "[[v0.6.0.3 - Linux support]]"
 created: 2026-11-02
 updated: 2026-11-03
 ---
@@ -17,7 +19,7 @@ updated: 2026-11-03
 
 ## Purpose
 
-Publish Vault Manager as one self-contained Windows x64 exe on the GitHub Releases page of `TechTeaStudio/ObsidianVaultManager`. The release branch is `product`, and a push to `product` is the release. The reason is in [[Release on push to product]].
+Publish Vault Manager as one self-contained file per platform on the GitHub Releases page of `TechTeaStudio/ObsidianVaultManager`: `win-x64` as an exe, and `linux-x64`, each with a SHA-256 checksum. The release branch is `product`, and a push to `product` is the release. The reason is in [[Release on push to product]], and the Linux side is in [[Linux support]].
 
 ## Preconditions
 
@@ -40,21 +42,21 @@ Publish Vault Manager as one self-contained Windows x64 exe on the GitHub Releas
 
 Runs on pull requests to `product`, and by hand. A push to `product` does not run it, because `release.yml` runs the same build and tests on that push.
 
-- **Test** on `windows-latest` with .NET 10. It includes `ReleaseTests`, so a pull request whose `VERSION` has no changelog section fails here.
+- **Test** on `windows-latest` and `ubuntu-latest`, one job each, with .NET 10. It includes `ReleaseTests`, so a pull request whose `VERSION` has no changelog section fails here on either system.
 - **Build** of `VaultManager.App` on `ubuntu-latest` for each of net6.0, net8.0, net9.0 and net10.0. Each job also installs SDK 10, because the sources use C# 12.
 
 ### release.yml
 
-Runs on every push to `product`, and by hand from the Actions tab. It has no tag trigger and no inputs. In order:
+Runs on every push to `product`, and by hand from the Actions tab. It has no tag trigger and no inputs. Four jobs, and the first two run side by side:
 
-1. **Build** `VaultManager.App` for net6.0, net8.0, net9.0 and net10.0 on `ubuntu-latest`. This job does not read the changelog, so it runs even when the section is missing.
-2. **Read version and notes** on `windows-latest`, after all four builds pass. `.github/scripts/release-info.ps1` reads `VERSION`, requires four single-digit parts and copies the body of the matching `## <VERSION>` section of `CHANGELOG.md` into `release-notes.md`. A missing or empty section stops the job here, so nothing below runs.
-3. **Check whether this version is already released.** `gh release view v<VERSION>` decides it. If a release exists, the publish, smoke test, naming and release steps are skipped, and the push releases nothing.
-4. **Test:** `dotnet test tests/VaultManager.Tests/VaultManager.Tests.csproj -c Release`. It runs on every push, released or not.
-5. **Publish** net10.0, win-x64, self-contained, single file, compressed, with native libraries inside, into `publish/`.
-6. **Smoke test the exe:** start `publish/VaultManager.exe --smoke` and fail on a non-zero exit code. See the next section for what it checks.
-7. **Name the exe and write its checksum:** rename it to `VaultManager-v<VERSION>-win-x64.exe` and write a `.sha256` file beside it, holding the lowercase SHA-256 hash, two spaces and the file name.
-8. **Create GitHub Release:** `gh release create v<VERSION>` with the exe and the `.sha256`, the notes file as the body, `--target` set to the pushed commit, and `--latest`. The release makes the tag: a lightweight tag `v<VERSION>` on the pushed commit.
+1. **Version and notes** on `ubuntu-latest`. `.github/scripts/release-info.ps1` reads `VERSION`, requires four single-digit parts and copies the body of the matching `## <VERSION>` section of `CHANGELOG.md` into `release-notes.md`. A missing or empty section stops the job here, so nothing below runs. The same job checks whether `gh release view v<VERSION>` finds a release. If one exists, the publish, smoke test, naming and release steps are skipped, and the push releases nothing.
+2. **Build** `VaultManager.App` for net6.0, net8.0, net9.0 and net10.0 on `ubuntu-latest`. It does not wait for job 1 and does not read the changelog, so it runs even when the section is missing.
+3. **Test and package** on each platform: `windows-latest` makes `win-x64`, and `ubuntu-latest` makes `linux-x64`. It waits for jobs 1 and 2 to pass. `fail-fast` stops the other platform if one fails. Each platform runs these steps:
+   - **Test:** `dotnet test tests/VaultManager.Tests/VaultManager.Tests.csproj -c Release`. It runs on every push, released or not.
+   - **Publish** net10.0 for its runtime, self-contained, single file, compressed, with native libraries inside, into `publish/`. Skipped when the version is already released.
+   - **Smoke test the file.** On Windows it runs `publish/VaultManager.exe --smoke`. On Linux it runs `xvfb-run -a ./publish/VaultManager --smoke`. Either must exit with 0. See the next section for what it checks.
+   - **Name the file and write its checksum:** `VaultManager-v<VERSION>-win-x64.exe` or `VaultManager-v<VERSION>-linux-x64`, with a `.sha256` file beside it holding the lowercase SHA-256 hash, two spaces and the file name. The file is then kept as a workflow artifact.
+4. **Create GitHub Release** on `ubuntu-latest`, after both platforms pass, and only on `product` when the version is new. It collects both artifacts. `gh release create v<VERSION>` attaches each file with its `.sha256`, uses the notes file as the body, sets `--target` to the pushed commit, and passes `--latest`. The release makes the tag: a lightweight tag `v<VERSION>` on the pushed commit.
 
 ### The --smoke run
 
@@ -69,16 +71,19 @@ A published build has no window to look at in a check, so `Program.Smoke` in `sr
 
 Exceptions are not caught, so a native library that fails to load ends the process with a non-zero code too.
 
+On `linux-x64` the same check runs under `xvfb-run -a`. Skia and the font check need a display, so `xvfb-run` starts a virtual one for the run. The check opens a SQLite database, which is the first database call the app makes. That call crashed the Linux build on a system without ICU, so a passing check on the Linux file covers it in the invariant build. See [[Linux support]].
+
 ## Verification
 
-- The Release page has `VaultManager-v<VERSION>-win-x64.exe` and its `.sha256`, and the tag `v<VERSION>` sits on the pushed commit.
-- The SHA-256 of the downloaded exe matches the hash in the `.sha256` file.
+- The Release page has `VaultManager-v<VERSION>-win-x64.exe` and `VaultManager-v<VERSION>-linux-x64`, each with its `.sha256`, and the tag `v<VERSION>` sits on the pushed commit.
+- The SHA-256 of each downloaded file matches the hash in its `.sha256` file.
 - The exe starts with no .NET installed, and `--demo` runs. See [[Demo Mode]].
+- The Linux file runs after `chmod +x`, with no .NET installed. The README's Linux section gives the steps, and [[Linux support]] lists what has been tried.
 
 ## If It Fails
 
 - **The job stops at Read version and notes:** `CHANGELOG.md` has no `## <VERSION>` section, the section is empty, or `VERSION` is not four single-digit parts. Nothing was published and no tag was made. Fix the file, not the check, and push again.
-- **Tests, publish or smoke test fail:** nothing is published and no tag is made, because the release is created last. Fix the cause and push again with the same `VERSION`. The retry releases, because the check looks for a release, not for a new number.
+- **Tests, publish or smoke test fail on either platform:** nothing is published and no tag is made, because the release is created last. Fix the cause and push again with the same `VERSION`. The retry releases, because the check looks for a release, not for a new number.
 - **The log says the version is already released:** the push ran the checks and released nothing. To release again, bump `VERSION` and add its changelog section.
 
 ## Worth checking
@@ -90,5 +95,7 @@ Exceptions are not caught, so a native library that fails to load ends the proce
 ## Links
 
 - [[Release on push to product]]
+- [[Linux support]]
 - [[Demo Mode]]
 - [[v0.6.0.0 - Rebuild into Vault Manager]]
+- [[v0.6.0.3 - Linux support]]

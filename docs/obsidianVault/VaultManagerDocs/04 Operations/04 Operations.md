@@ -29,7 +29,7 @@ SORT updated DESC
 
 ## Key documents
 
-- [[Release]] - versioning, CI, the `--smoke` check, and how a push to `product` publishes the exe
+- [[Release]] - versioning, CI, the `--smoke` check, and how a push to `product` publishes the Windows exe and the Linux file
 - [[Demo Mode]] - the sealed world behind `--demo`, its temp folder, and the state gallery
 
 ## Status

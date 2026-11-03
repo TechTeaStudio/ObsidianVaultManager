@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0.3
+
+### Added
+
+- Linux: every release now carries a self-contained `linux-x64` file next to the Windows exe, each with a checksum. The tests run on Ubuntu as well as on Windows.
+- Obsidian installed through Flatpak or Snap is found on Linux, and the log names the install in use.
+
+### Fixed
+
+- On Linux an open vault looked closed: the app looked for a process named `Obsidian`, while Linux names it `obsidian` and compares by case. Changes for an open vault could have been written into it.
+- On Linux two vaults whose paths differ only in case were treated as one.
+- The Linux build crashed at start on a system without ICU. It now needs no ICU.
+
 ## 0.6.0.2
 
 ### Added

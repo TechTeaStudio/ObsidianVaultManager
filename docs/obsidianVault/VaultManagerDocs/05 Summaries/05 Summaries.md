@@ -8,7 +8,7 @@ summary: "Folder note for per-version change summaries."
 related:
   - "[[Vault Map]]"
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # 05 Summaries
@@ -30,7 +30,8 @@ SORT created ASC, file.name ASC
 ## Key documents
 
 - [[v0.6.0.0 - Rebuild into Vault Manager]] - the rebuild from `ObsidianScanner`
+- [[v0.6.0.3 - Linux support]] - Linux as a shipped target, and three fixes for Obsidian on Linux
 
 ## Status
 
-- Versions before the vault (0.2.0.0, 0.2.0.1) are in `CHANGELOG.md` only.
+- Versions without a note (0.2.0.0, 0.2.0.1, 0.6.0.1, 0.6.0.2) are in `CHANGELOG.md` only.

@@ -121,6 +121,7 @@ internal static class EnumTexts
 	public static string KeyOf(SettingsFate value) => "SettingsFate_" + value;
 	public static string KeyOf(NewVaultProblem value) => "NewVaultProblem_" + value;
 	public static string KeyOf(CellKind value) => "Cell_" + value;
+	public static string KeyOf(VaultManager.Core.Obsidian.ObsidianInstall value) => "ObsidianInstall_" + value;
 
 	public static string Of(ChangeStatus value) => Texts.Get(KeyOf(value));
 	public static string Of(ChangeFailure value) => Texts.Get(KeyOf(value));
@@ -132,6 +133,7 @@ internal static class EnumTexts
 	public static string Of(SettingsFate value) => Texts.Get(KeyOf(value));
 	public static string Of(NewVaultProblem value) => Texts.Get(KeyOf(value));
 	public static string Of(CellKind value) => Texts.Get(KeyOf(value));
+	public static string Of(VaultManager.Core.Obsidian.ObsidianInstall value) => Texts.Get(KeyOf(value));
 
 	/// <summary>What one undone line was, for the log. Kind is a code Core wrote, not a sentence.</summary>
 	public static string UndoSubject(UndoRecord record)

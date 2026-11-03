@@ -33,15 +33,32 @@ public sealed class SystemObsidianProcess : IObsidianProcess
 	{
 		get
 		{
-			Process[] found = Process.GetProcessesByName("Obsidian");
-			foreach (Process process in found)
+			bool found = false;
+			foreach (Process process in Process.GetProcesses())
 			{
-				process.Dispose();
+				try
+				{
+					found |= IsObsidian(process.ProcessName);
+				}
+				catch (InvalidOperationException)
+				{
+					// The process ended while the list was read.
+				}
+				finally
+				{
+					process.Dispose();
+				}
 			}
 
-			return found.Length > 0;
+			return found;
 		}
 	}
+
+	/// <summary>
+	/// Windows names the process Obsidian, Linux obsidian, and Linux compares process names by case. A plain lookup
+	/// for "Obsidian" found nothing there, so an open vault looked closed and got written into.
+	/// </summary>
+	public static bool IsObsidian(string processName) => string.Equals(processName, "obsidian", StringComparison.OrdinalIgnoreCase);
 }
 
 public sealed record RegistryEntry(string Id, string Path, bool Open);
@@ -99,7 +116,7 @@ public sealed class VaultRegistry(string obsidianConfigDir)
 		foreach (JProperty vault in vaults.Properties())
 		{
 			if (vault.Value is JObject body && body.Value<string>("path") is { } path
-				&& string.Equals(Path.GetFullPath(path), wanted, StringComparison.OrdinalIgnoreCase))
+				&& PathRules.Same(Path.GetFullPath(path), wanted))
 			{
 				return vault.Name;
 			}

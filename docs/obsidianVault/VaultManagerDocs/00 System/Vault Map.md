@@ -12,14 +12,14 @@ related:
   - "[[05 Summaries]]"
   - "[[06 Decisions]]"
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # Vault Map
 
 Where things live in the Vault Manager vault. Skim this before creating a note, and prefer updating an existing one.
 
-Vault Manager is a Windows desktop app by Tech Tea Studio for managing Obsidian across many vaults from outside Obsidian: plugins, versions, settings, profiles and new vaults. The repository is `ObsidianVaultManager` and the release branch is `product`.
+Vault Manager is a desktop app for Windows and Linux by Tech Tea Studio for managing Obsidian across many vaults from outside Obsidian: plugins, versions, settings, profiles and new vaults. The repository is `ObsidianVaultManager` and the release branch is `product`.
 
 ## What you need and where to go
 

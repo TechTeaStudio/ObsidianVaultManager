@@ -119,7 +119,7 @@ internal sealed partial class NewVaultViewModel(ShellViewModel shell) : Observab
 		else
 		{
 			IReadOnlyDictionary<string, string> sources = Plans.PluginSources(profile, snapshot);
-			List<string> names = sources.Values.Distinct(StringComparer.OrdinalIgnoreCase).Select(v => PluginFacts.VaultName(snapshot, v)).ToList();
+			List<string> names = sources.Values.Distinct(VaultManager.Core.Foundation.PathRules.Comparer).Select(v => PluginFacts.VaultName(snapshot, v)).ToList();
 			PluginsText = sources.Count == 0
 				? Texts.Get(K.NewVault_NoPlugins)
 				: Texts.Format(K.NewVault_PluginsFrom, sources.Count, Texts.Join(names));

@@ -213,6 +213,12 @@ internal sealed partial class ShellViewModel : ObservableObject
 
 	public async Task StartAsync()
 	{
+		// Off Windows Obsidian may live in a sandbox; the log says which settings this run reads.
+		if (!OperatingSystem.IsWindows() || Host.Paths.Install != VaultManager.Core.Obsidian.ObsidianInstall.Standard)
+		{
+			Log.Add(LogKind.Plain, Texts.Format(K.Log_ObsidianFrom, EnumTexts.Of(Host.Paths.Install), Host.Paths.ObsidianConfigDir));
+		}
+
 		await RescanAsync(log: true);
 
 		// Lines from the last run of the app go as soon as their gate is open.

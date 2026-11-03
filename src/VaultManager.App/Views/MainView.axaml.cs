@@ -48,6 +48,16 @@ public sealed partial class MainView : UserControl
 		});
 		Hook("MaximizeButton", ToggleMaximized);
 		Hook("CloseButton", () => (TopLevel.GetTopLevel(this) as Window)?.Close());
+		if (!OperatingSystem.IsWindows())
+		{
+			foreach (string name in new[] { "MinimizeButton", "MaximizeButton", "CloseButton" })
+			{
+				if (this.FindControl<Button>(name) is { } button)
+				{
+					button.IsVisible = false;
+				}
+			}
+		}
 
 		AddHandler(PointerPressedEvent, OnAnyPointerPressed, RoutingStrategies.Tunnel);
 		AddHandler(KeyDownEvent, OnAnyKeyDown, RoutingStrategies.Tunnel);

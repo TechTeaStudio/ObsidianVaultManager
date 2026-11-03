@@ -37,12 +37,12 @@ internal static class Plans
 
 	public static CopyPlugin? AddTo(PluginRow row, string vaultPath, bool copySettings)
 	{
-		if (row.NewestVersion is null || row.SourceVaultPath is null || string.Equals(row.SourceVaultPath, vaultPath, StringComparison.OrdinalIgnoreCase))
+		if (row.NewestVersion is null || row.SourceVaultPath is null || VaultManager.Core.Foundation.PathRules.Same(row.SourceVaultPath, vaultPath))
 		{
 			return null;
 		}
 
-		PluginInstall? target = row.Installs.FirstOrDefault(i => string.Equals(i.VaultPath, vaultPath, StringComparison.OrdinalIgnoreCase));
+		PluginInstall? target = row.Installs.FirstOrDefault(i => VaultManager.Core.Foundation.PathRules.Same(i.VaultPath, vaultPath));
 		return new CopyPlugin(vaultPath, row.Id, row.Name, target?.Version, row.NewestVersion, row.SourceVaultPath, copySettings, target?.MainHash);
 	}
 
@@ -160,7 +160,7 @@ internal static class NewVaultRules
 			return NewVaultProblem.BadName;
 		}
 
-		if (snapshot?.Vaults.Any(v => string.Equals(Path.GetFileName(v.Path.TrimEnd('\\', '/')), trimmed, StringComparison.OrdinalIgnoreCase)) == true)
+		if (snapshot?.Vaults.Any(v => string.Equals(Path.GetFileName(v.Path.TrimEnd('\\', '/')), trimmed, VaultManager.Core.Foundation.PathRules.Comparison)) == true)
 		{
 			return NewVaultProblem.NameTaken;
 		}
@@ -188,7 +188,7 @@ internal static class NewVaultRules
 	{
 		string full = Path.GetFullPath(path).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
 		string top = Path.GetFullPath(root).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
-		return full.StartsWith(top, StringComparison.OrdinalIgnoreCase);
+		return full.StartsWith(top, VaultManager.Core.Foundation.PathRules.Comparison);
 	}
 }
 
@@ -196,7 +196,7 @@ internal static class ProfileNames
 {
 	public static string Free(string wanted, IEnumerable<string> taken)
 	{
-		var names = new HashSet<string>(taken, StringComparer.OrdinalIgnoreCase);
+		var names = new HashSet<string>(taken, VaultManager.Core.Foundation.PathRules.Comparer);
 		string name = wanted;
 		for (int n = 2; names.Contains(name); n++)
 		{

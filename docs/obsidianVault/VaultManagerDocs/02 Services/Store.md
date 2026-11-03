@@ -10,7 +10,7 @@ related:
   - "[[Changes]]"
   - "[[Profiles as files, everything else in SQLite]]"
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # Store
@@ -36,7 +36,7 @@ The app's own memory: journal, undo records, waiting lines, sync bases, ignored 
 
 ## Details
 
-File: `%LOCALAPPDATA%\TechTeaStudio\VaultManager\vault-manager.db`. WAL journal, connection pooling off, one connection per call.
+File: `vault-manager.db` in the app's data folder, which is `%LOCALAPPDATA%\TechTeaStudio\VaultManager` on Windows and `~/.local/share/TechTeaStudio/VaultManager` on Linux. WAL journal, connection pooling off, one connection per call.
 
 ### Schema version 2
 

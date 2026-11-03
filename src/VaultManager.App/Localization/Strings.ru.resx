@@ -150,7 +150,7 @@
   <data name="ChangeFailure_DownloadFailed" xml:space="preserve"><value>загрузка не удалась</value></data>
   <data name="ChangeFailure_VerifyFailed" xml:space="preserve"><value>копия не совпала с источником</value></data>
   <data name="ChangeFailure_NothingToUndo" xml:space="preserve"><value>отменять нечего</value></data>
-  <data name="ChangeFailure_RecoveryNeeded" xml:space="preserve"><value>старую копию не удалось вернуть, она лежит в .obsidian\.vault-manager-staging</value></data>
+  <data name="ChangeFailure_RecoveryNeeded" xml:space="preserve"><value>старую копию не удалось вернуть, она лежит в папке .vault-manager-staging внутри .obsidian</value></data>
   <data name="ChangeFailure_Unexpected" xml:space="preserve"><value>произошло что-то непредвиденное</value></data>
   <data name="ChangeFailure_WriteFailed" xml:space="preserve"><value>не удалось записать на диск</value></data>
   <data name="Undo_Button" xml:space="preserve"><value>Отменить</value></data>
@@ -396,4 +396,8 @@
   <data name="Plural_Vaults_One" xml:space="preserve"><value>{0} хранилище</value></data>
   <data name="Plural_Vaults_Few" xml:space="preserve"><value>{0} хранилища</value></data>
   <data name="Plural_Vaults_Many" xml:space="preserve"><value>{0} хранилищ</value></data>
+  <data name="Log_ObsidianFrom" xml:space="preserve"><value>Настройки Obsidian, установка {0}: {1}</value></data>
+  <data name="ObsidianInstall_Standard" xml:space="preserve"><value>обычная</value></data>
+  <data name="ObsidianInstall_Flatpak" xml:space="preserve"><value>Flatpak</value></data>
+  <data name="ObsidianInstall_Snap" xml:space="preserve"><value>Snap</value></data>
 </root>

@@ -13,6 +13,20 @@ public readonly record struct ReadResult<T>(ReadStatus Status, T? Value, string?
 	public static ReadResult<T> Unreadable(string error) => new(ReadStatus.Unreadable, default, error);
 }
 
+/// <summary>
+/// NTFS and APFS ignore case by default, Linux file systems do not: there, two vaults may differ only in case,
+/// and treating them as one would put a change into the wrong vault.
+/// </summary>
+public static class PathRules
+{
+	public static readonly StringComparison Comparison = OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+	public static readonly StringComparer Comparer = OperatingSystem.IsLinux() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+
+	public static bool Same(string a, string b) => string.Equals(a, b, Comparison);
+
+	public static string Key(string path) => OperatingSystem.IsLinux() ? path : path.ToUpperInvariant();
+}
+
 public static class AtomicFile
 {
 	/// <summary>Writes beside the target and renames, so a crash or a dropped USB hub cannot leave half a file.</summary>

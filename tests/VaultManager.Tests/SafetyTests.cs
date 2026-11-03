@@ -301,7 +301,9 @@ public sealed class SafetyTests
 	[Fact]
 	public void Same_folder_names_are_told_apart_by_their_parent()
 	{
-		IReadOnlyDictionary<string, string> names = WorkspaceScanner.DisplayNames([new("1", @"D:\Obsidian\PC", false), new("2", @"D:\Obsidian\CopyPc\PC", false), new("3", @"D:\Other", false)]);
+		// Real separators of this machine: on Linux a backslash is part of a name, not a folder break.
+		string root = Path.Combine(Path.GetTempPath(), "Obsidian");
+		IReadOnlyDictionary<string, string> names = WorkspaceScanner.DisplayNames([new("1", Path.Combine(root, "PC"), false), new("2", Path.Combine(root, "CopyPc", "PC"), false), new("3", Path.Combine(Path.GetTempPath(), "Other"), false)]);
 		Assert.Equal("PC (Obsidian)", names["1"]);
 		Assert.Equal("PC (CopyPc)", names["2"]);
 		Assert.Equal("Other", names["3"]);

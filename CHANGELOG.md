@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.6.0.5
+## 0.6.0.6
 
-The first release with a Linux file. 0.6.0.3 and 0.6.0.4 never shipped: their tests failed on Ubuntu, so each release stopped before publishing. Their changes are listed here.
+The first release with a Linux file. 0.6.0.3, 0.6.0.4 and 0.6.0.5 never shipped: their tests failed on Ubuntu, so each release stopped before publishing. Their changes are listed here.
 
 ### Added
 
@@ -15,14 +15,19 @@ The first release with a Linux file. 0.6.0.3 and 0.6.0.4 never shipped: their te
 - On Linux two vaults whose paths differ only in case were treated as one. Profile and vault names still compare without case on every system.
 - The Linux build crashed at start on a system without ICU. It now needs no ICU.
 - The test suite holds on Linux: tests no longer build paths from Windows drive letters, block a delete in a way only Windows honours, or load the Win32 icon loader, whose finalizer crashed the Linux test run.
+- A window test checked a change while it was still on its way, and on a fast machine the change had already finished. It now checks the result.
+
+## 0.6.0.5
+
+Not released. Its changes ship in 0.6.0.6.
 
 ## 0.6.0.4
 
-Not released. Its changes ship in 0.6.0.5.
+Not released. Its changes ship in 0.6.0.6.
 
 ## 0.6.0.3
 
-Not released. Its changes ship in 0.6.0.5.
+Not released. Its changes ship in 0.6.0.6.
 
 ## 0.6.0.2
 

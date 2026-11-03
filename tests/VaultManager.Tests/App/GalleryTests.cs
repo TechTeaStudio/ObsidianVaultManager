@@ -477,10 +477,12 @@ public sealed class GalleryTests
 		window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
 		window.KeyReleaseQwerty(PhysicalKey.Enter, RawInputModifiers.None);
 		Dispatcher.UIThread.RunJobs();
-		Assert.Single(shell.Changes.Queue.Lines);
 		Assert.True(shell.Picker.IsOpen);
 		Assert.Same(filter, window.FocusManager.GetFocusedElement());
+		// The copy starts at once, and on a fast machine it can finish and leave the queue inside RunJobs,
+		// so the test checks what Enter did, not the line on its way.
 		await shell.Changes.WhenIdle;
+		Assert.Equal("2.38.2", Fixture.VersionOf(world.Vault("Family"), "obsidian-git"));
 
 		window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 		window.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
